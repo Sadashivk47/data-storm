@@ -52,7 +52,7 @@ app.post("/login", (req, res) => {
     const mockToken =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
       ".eyJ1c2VyIjoiYWRtaW4iLCJpYXQiOjE2MDAwMDAwMDB9" +
-      ".MOCK_SIGNATURE_REPLACE_WITH_REAL_JWT";
+      ".y7xTVvjs2EiQVAFq6q3P96HCIGLjCRoqtZVSSag76ep";
 
     return res.status(200).json({
       message: "Login successful",
