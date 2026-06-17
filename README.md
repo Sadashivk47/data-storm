@@ -1,18 +1,19 @@
 # The Data Hub
 
-A RESTful API built with Node.js, Express, MongoDB Atlas, and Mongoose. This project demonstrates database-driven CRUD operations, schema modeling, middleware, authentication scaffolding, and document relationships using MongoDB.
+A RESTful API built with Node.js, Express, MongoDB Atlas, and Mongoose. This project demonstrates cloud database integration, CRUD operations, schema modeling, middleware, authentication scaffolding, document relationships, and aggregation queries.
 
 ## Features
 
 - MongoDB Atlas cloud database integration
 - Mongoose schema and model architecture
-- Create, read, update, and delete blog posts
+- Persistent database storage
+- Create, read, update, and delete posts
 - User and Post relationship modeling
-- Populate author information on posts
+- Populate author information using Mongoose
 - Custom request logging middleware
-- Mock authentication endpoint
-- Recent posts endpoint
-- Environment variable configuration using dotenv
+- Mock authentication endpoint using environment variables
+- Top 3 recent posts endpoint
+- Environment variable configuration with dotenv
 
 ---
 
@@ -33,7 +34,7 @@ A RESTful API built with Node.js, Express, MongoDB Atlas, and Mongoose. This pro
 
 ```bash
 git clone <your-repository-url>
-cd data-hub
+cd data-storm
 ```
 
 ### Install Dependencies
@@ -48,7 +49,13 @@ Create a `.env` file in the project root:
 
 ```env
 PORT=5000
+
 MONGO_URI=your_mongodb_connection_string
+
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=password123
+
+AUTH_TOKEN=your_mock_token
 ```
 
 ### Run Development Server
@@ -74,7 +81,7 @@ http://localhost:5000
 ## Project Structure
 
 ```text
-data-hub/
+data-storm/
 │
 ├── models/
 │   ├── post.js
@@ -82,15 +89,15 @@ data-hub/
 │
 ├── server.js
 ├── package.json
-├── .env
-└── README.md
+├── README.md
+└── prompts.md
 ```
 
 ---
 
 ## Database Models
 
-### User
+### User Model
 
 ```js
 {
@@ -99,14 +106,15 @@ data-hub/
 }
 ```
 
-### Post
+### Post Model
 
 ```js
 {
   title: String,
-  body: String,
+  content: String,
   authorId: ObjectId,
-  createdAt: Date
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
@@ -161,7 +169,7 @@ data-hub/
 ```json
 {
   "title": "Learning MongoDB",
-  "body": "MongoDB stores data as documents.",
+  "content": "MongoDB stores data as documents.",
   "authorId": "USER_ID_HERE"
 }
 ```
@@ -191,12 +199,13 @@ data-hub/
 }
 ```
 
-Response:
+Successful Response:
 
 ```json
 {
   "message": "Login successful",
-  "token": "eyJhbGciOi..."
+  "token": "your_mock_token",
+  "expiresIn": "1h"
 }
 ```
 
@@ -204,7 +213,7 @@ Response:
 
 ## Middleware
 
-Every request is logged to the console.
+Every request passes through a custom logger middleware.
 
 Example:
 
@@ -216,21 +225,32 @@ Example:
 
 ---
 
-## Relationship Modeling
+## MongoDB Relationships
 
-Each post stores an `authorId` that references a user document.
+Posts are linked to users through the `authorId` field.
 
-When fetching posts, Mongoose `populate()` is used to include author details automatically.
+```js
+authorId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User"
+}
+```
 
-Example:
+When fetching posts, Mongoose automatically populates the author details using:
+
+```js
+.populate("authorId")
+```
+
+Example Response:
 
 ```json
 {
-  "_id": "...",
+  "_id": "123",
   "title": "Learning MongoDB",
-  "body": "MongoDB stores data as documents.",
+  "content": "MongoDB stores data as documents.",
   "authorId": {
-    "_id": "...",
+    "_id": "456",
     "name": "Sadashiv",
     "email": "sadashiv@example.com"
   }
@@ -239,7 +259,7 @@ Example:
 
 ---
 
-## Recent Posts Endpoint
+## Aggregation / Recent Posts Endpoint
 
 Returns the three most recently created posts.
 
@@ -247,25 +267,30 @@ Returns the three most recently created posts.
 GET /posts/recent/top3
 ```
 
-Implemented using sorting and limiting database results.
+Implementation:
+
+```js
+Post.find()
+  .populate("authorId")
+  .sort({ createdAt: -1 })
+  .limit(3);
+```
 
 ---
 
-## Testing
-
-Tested using Thunder Client and Postman.
-
-Recommended testing sequence:
+## Testing Workflow
 
 1. Create a user
-2. Create multiple posts
-3. Fetch all posts
-4. Fetch a single post
-5. Update a post
-6. Delete a post
-7. View recent posts
-8. Test login endpoint
-9. Verify documents in MongoDB Atlas
+2. Copy the generated user ID
+3. Create multiple posts using that author ID
+4. Fetch all posts
+5. Verify populated author information
+6. Fetch a single post
+7. Update a post
+8. Delete a post
+9. View the top 3 recent posts
+10. Test login endpoint
+11. Verify data persistence in MongoDB Atlas
 
 ---
 
@@ -279,6 +304,23 @@ Recommended testing sequence:
 | 401 | Unauthorized |
 | 404 | Not Found |
 | 500 | Internal Server Error |
+
+---
+
+## Learning Outcomes
+
+This project demonstrates:
+
+- MongoDB Atlas cloud database setup
+- Mongoose schemas and models
+- CRUD operations with MongoDB
+- Environment variable management
+- REST API development with Express
+- Middleware implementation
+- Document relationships using ObjectId references
+- Data population using `populate()`
+- Sorting and limiting database queries
+- API testing using Postman
 
 ---
 
